@@ -124,3 +124,18 @@ else
 
   git worktree add "$abs_path" "$selected_branch"
 fi
+
+# --- Restore local-only files ---
+echo ""
+echo "Restoring local files..."
+restore_item ".env"
+restore_item ".env.local"
+restore_glob ".env.*.local"
+restore_item ".env.direct"
+restore_item ".env.staging"
+restore_item ".env.production"
+restore_item "app/.env"
+restore_item "app/.env.direct"
+restore_item "dev/certs"
+restore_item "app/public/design-tokens.source.json"
+echo "Done."
