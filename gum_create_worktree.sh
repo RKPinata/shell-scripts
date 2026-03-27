@@ -59,7 +59,7 @@ restore_item() {
 restore_glob() {
   local pattern="$1"
   for source in "${MAIN_ROOT}"/${pattern}; do
-    [[ -e "$source" ]] || continue
+    [[ -e "$source" || -L "$source" ]] || continue
     local rel_path="${source#${MAIN_ROOT}/}"
     restore_item "$rel_path"
   done
