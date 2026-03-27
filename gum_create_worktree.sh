@@ -147,7 +147,7 @@ echo "Done."
 echo ""
 if gum confirm "Run npm install in app/?"; then
   echo "Running npm install..."
-  (cd "${abs_path}/app" && npm install)
+  (cd "${abs_path}/app" && npm install) || echo "  ⚠️  npm install exited with an error"
 fi
 
 echo ""
