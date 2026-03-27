@@ -142,3 +142,14 @@ restore_item "app/.env.direct"
 restore_item "dev/certs"
 restore_item "app/public/design-tokens.source.json"
 echo "Done."
+
+# --- Bootstrap ---
+echo ""
+if gum confirm "Run npm install in app/?"; then
+  echo "Running npm install..."
+  (cd "${abs_path}/app" && npm install)
+fi
+
+echo ""
+echo "Start the app:"
+echo "  cd ${abs_path}/app && npm run dev"
