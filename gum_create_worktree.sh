@@ -125,6 +125,9 @@ else
   git worktree add "$abs_path" "$selected_branch"
 fi
 
+# Guard: only restore if worktree was successfully created
+[[ -d "$abs_path" ]] || { echo "❌ Worktree creation failed; skipping restore."; exit 1; }
+
 # --- Restore local-only files ---
 echo ""
 echo "Restoring local files..."
