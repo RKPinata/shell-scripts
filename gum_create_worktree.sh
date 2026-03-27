@@ -19,6 +19,52 @@ fi
 MAIN_ROOT=$(git worktree list --porcelain | awk 'NR==1{sub(/^worktree /, ""); print}')
 WORKTREE_PARENT=$(dirname "$MAIN_ROOT")
 
+# Restore a single file or directory from MAIN_ROOT into the new worktree.
+# Usage: restore_item <repo-relative-path>
+restore_item() {
+  local rel_path="$1"
+  local source="${MAIN_ROOT}/${rel_path}"
+  local target="${abs_path}/${rel_path}"
+
+  # Source absent — skip silently
+  if [[ ! -e "$source" && ! -L "$source" ]]; then
+    return 0
+  fi
+
+  # Target is already the correct symlink — skip silently
+  if [[ -L "$target" && "$(readlink "$target")" == "$source" ]]; then
+    return 0
+  fi
+
+  # Target exists but is something else — warn and skip
+  if [[ -e "$target" || -L "$target" ]]; then
+    echo "  [warned]  $rel_path — target exists, skipping"
+    return 0
+  fi
+
+  # Ensure parent directory exists
+  mkdir -p "$(dirname "$target")"
+
+  if [[ "${RESTORE_MODE:-symlink}" == "copy" ]]; then
+    cp -r "$source" "$target"
+    echo "  [copied]  $rel_path"
+  else
+    ln -s "$source" "$target"
+    echo "  [linked]  $rel_path"
+  fi
+}
+
+# Restore all files matching a shell glob under MAIN_ROOT.
+# Usage: restore_glob <glob-pattern>  (e.g. ".env.*.local")
+restore_glob() {
+  local pattern="$1"
+  for source in "${MAIN_ROOT}"/${pattern}; do
+    [[ -e "$source" ]] || continue
+    local rel_path="${source#${MAIN_ROOT}/}"
+    restore_item "$rel_path"
+  done
+}
+
 # Mode selection
 mode=$(gum filter "new branch" "existing branch") || exit 1
 
