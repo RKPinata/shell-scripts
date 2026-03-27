@@ -16,7 +16,12 @@ if ! git rev-parse --is-inside-work-tree &>/dev/null; then
 fi
 
 # Derive main checkout root — correct even when invoked from inside a worktree
+# Set RESTORE_MODE=copy to copy local files into the worktree instead of symlinking them.
 MAIN_ROOT=$(git worktree list --porcelain | awk 'NR==1{sub(/^worktree /, ""); print}')
+if [[ -z "$MAIN_ROOT" ]]; then
+  echo "❌ Could not derive main checkout root. Exiting."
+  exit 1
+fi
 WORKTREE_PARENT=$(dirname "$MAIN_ROOT")
 
 # Restore a single file or directory from MAIN_ROOT into the new worktree.
