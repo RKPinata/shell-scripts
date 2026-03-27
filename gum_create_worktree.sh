@@ -16,7 +16,7 @@ if ! git rev-parse --is-inside-work-tree &>/dev/null; then
 fi
 
 # Derive main checkout root — correct even when invoked from inside a worktree
-MAIN_ROOT=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+MAIN_ROOT=$(git worktree list --porcelain | awk 'NR==1{sub(/^worktree /, ""); print}')
 WORKTREE_PARENT=$(dirname "$MAIN_ROOT")
 
 # Mode selection
