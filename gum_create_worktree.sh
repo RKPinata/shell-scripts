@@ -102,7 +102,7 @@ if [[ "$mode" == "new branch" ]]; then
     all_branches=$(git for-each-ref --sort=-committerdate refs/heads/ --format="%(refname:short)")
     flight_branches=$(echo "$all_branches" | grep "^flight/")
     other_branches=$(echo "$all_branches" | grep -v "^flight/")
-    branches=$(printf "%s\n%s" "$flight_branches" "$other_branches")
+    branches=$(printf "%s\n%s" "$flight_branches" "$other_branches" | grep -v '^$')
     source_branch=$(echo "$branches" | gum filter --header "📂 Select base branch (flight/* prioritized)") || return 1 2>/dev/null || exit 1
   fi
 
