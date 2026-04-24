@@ -89,12 +89,13 @@ find_next_port() {
 mode=$(gum filter "new branch" "existing branch") || return 1 2>/dev/null || exit 1
 
 if [[ "$mode" == "new branch" ]]; then
+  # Reset from any previous sourced run
+  source_branch=""
+
   # Prompt for branch name
   branch_name=$(gum input --placeholder "Enter branch name") || return 1 2>/dev/null || exit 1
-
   # Prompt for prefix
   prefix=$(gum filter "flight" "hotfix" "feature" "bugfix" "improvement" "resolve" "other" "test") || return 1 2>/dev/null || exit 1
-
   # Determine base branch
   if [[ "$prefix" == "flight" || "$prefix" == "hotfix" ]]; then
     source_branch="master"
@@ -102,8 +103,17 @@ if [[ "$mode" == "new branch" ]]; then
     all_branches=$(git for-each-ref --sort=-committerdate refs/heads/ --format="%(refname:short)")
     flight_branches=$(echo "$all_branches" | grep "^flight/")
     other_branches=$(echo "$all_branches" | grep -v "^flight/")
-    branches=$(printf "%s\n%s" "$flight_branches" "$other_branches" | grep -v '^$')
+    if [[ -n "$flight_branches" ]]; then
+      branches=$(printf "%s\n%s" "$flight_branches" "$other_branches")
+    else
+      branches="$other_branches"
+    fi
     source_branch=$(echo "$branches" | gum filter --header "📂 Select base branch (flight/* prioritized)") || return 1 2>/dev/null || exit 1
+  fi
+
+  if [[ -z "$source_branch" ]]; then
+    echo "❌ No source branch resolved. Exiting."
+    return 1 2>/dev/null || exit 1
   fi
 
   full_branch="${prefix}/${branch_name}"
@@ -127,12 +137,10 @@ else
 
   # Select existing branch
   selected_branch=$(echo "$branches" | gum filter) || return 1 2>/dev/null || exit 1
-
   # Derive worktree path: flatten / to _
   flattened="${selected_branch//\//_}"
   abs_path="${WORKTREE_PARENT}/${flattened}"
   display_branch="$selected_branch"
-
   # Pre-execution guard: path collision
   if [ -e "$abs_path" ]; then
     echo "❌ Directory $abs_path already exists. Exiting."

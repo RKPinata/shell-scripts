@@ -1,0 +1,24 @@
+{
+  "openIssue": {
+    "path": "/path-to-your/respond-io-web/app/scripts/linear/",
+    "args": [
+      "--issue",
+      "{{issue.identifier}}",
+      "--branch",
+      "{{issue.branchName}}",
+      "--project",
+      "{{project.name}}",
+      "--pull-request-comment-id",
+      "{{pullRequestComment.id}}",
+      "--prompt",
+      "{{prompt}}"
+    ],
+    "env": [
+      "LINEAR_ISSUE_IDENTIFIER",
+      "LINEAR_ISSUE_BRANCH_NAME",
+      "LINEAR_PROJECT_NAME",
+      "LINEAR_PULL_REQUEST_COMMENT_ID",
+      "LINEAR_PROMPT"
+    ]
+  }
+}
