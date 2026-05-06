@@ -1,7 +1,8 @@
 #!/usr/bin/env zsh
 
 # Usage:
-#   alias cdwt='source ~/scripts/gum_cd_worktree.sh'
+#   source cd_worktree.sh
+#   or install via: ./install.sh
 #
 # Requirements:
 # - git
@@ -10,8 +11,8 @@
 # Guard: prevent direct execution (cd would affect a subshell, not the terminal)
 if [[ "$ZSH_EVAL_CONTEXT" != *":file"* ]]; then
   echo "Error: this script must be sourced, not executed directly." >&2
-  echo "Usage: source gum_cd_worktree.sh" >&2
-  echo "       or via alias: alias cdwt='source ~/scripts/gum_cd_worktree.sh'" >&2
+  echo "Usage: source cd_worktree.sh" >&2
+  echo "       or install via: ./worktree/install.sh" >&2
   exit 1
 fi
 
