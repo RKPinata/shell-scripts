@@ -32,6 +32,7 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
 fi
 
 current_dir="$(pwd)"
+main_worktree="$(git worktree list --porcelain | awk '/^worktree / { sub(/^worktree /, "", $0); print; exit }')"
 
 worktrees=("${(@f)$(
   git worktree list --porcelain |
@@ -44,9 +45,23 @@ if [ "${#worktrees[@]}" -eq 0 ]; then
   return 0
 fi
 
+# Build display names: basename for linked worktrees, "basename (main)" for the main worktree
+typeset -A path_map
+display_names=()
+
+for wt in "${worktrees[@]}"; do
+  if [[ "$wt" == "$main_worktree" ]]; then
+    name="${wt##*/} (main tree)"
+  else
+    name="${wt##*/}"
+  fi
+  display_names+=("$name")
+  path_map[$name]="$wt"
+done
+
 selected="$(
-  printf '%s\n' "${worktrees[@]}" |
-    gum choose --header "Select a git worktree to cd into"
+  printf '%s\n' "${display_names[@]}" |
+    gum filter --header "Select a git worktree to cd into"
 )"
 
 if [ -z "${selected}" ]; then
@@ -54,9 +69,11 @@ if [ -z "${selected}" ]; then
   return 0
 fi
 
-if cd "$selected"; then
-  echo "Changed directory to: $selected"
+target="${path_map[$selected]}"
+
+if cd "$target"; then
+  echo "Changed directory to: $target"
 else
-  echo "Error: failed to cd into '$selected'." >&2
+  echo "Error: failed to cd into '$target'." >&2
   return 1
 fi

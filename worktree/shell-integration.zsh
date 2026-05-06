@@ -8,4 +8,4 @@ __WORKTREE_DIR="${0:A:h}"
 
 create-tree() { source "${__WORKTREE_DIR}/create_worktree.sh"; }
 cd-tree()     { source "${__WORKTREE_DIR}/cd_worktree.sh"; }
-del-tree()    { "${__WORKTREE_DIR}/delete_worktree.sh" "$@"; }
+del-tree()    { source "${__WORKTREE_DIR}/delete_worktree.sh"; }
