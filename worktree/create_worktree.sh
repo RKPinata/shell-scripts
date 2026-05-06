@@ -174,8 +174,8 @@ fi
 # Worktree exists — update trap to cd into it on Ctrl+C
 trap "echo -e '\n🚪 Exiting...'; cd '$abs_path'; return 0 2>/dev/null || exit 0" SIGINT
 
-# Detect repo name from main checkout root
-REPO_NAME=$(basename "$MAIN_ROOT")
+# Detect repo name from git remote URL
+REPO_NAME=$(git -C "$MAIN_ROOT" remote get-url origin 2>/dev/null | sed 's/.*[/:]\([^/]*\)\.git$/\1/' | sed 's/.*[/:]\([^/]*\)$/\1/')
 
 # Non-respond-io-web repos: simple worktree, no repo-specific bootstrap
 if [[ "$REPO_NAME" != "respond-io-web" ]]; then
