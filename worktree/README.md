@@ -42,7 +42,7 @@ source ~/.zshrc
 | `cd-tree`     | Switch your terminal into another worktree          |
 | `del-tree`    | Select and force-delete one or more worktrees       |
 
-### create-tree — Create a worktree
+### 1. create-tree — Create a worktree
 
 Run `create-tree` from inside any git repository. It walks you through the full setup interactively.
 
@@ -66,13 +66,13 @@ The new worktree is placed at `<repo-root>/.worktrees/<branch-name>`, and your t
 
 > **Repo-specific behaviour:** For the `respond-io-web` repository, `create-tree` also restores environment files (`.env`, `.env.local`, etc.) from the main checkout — by symlink by default, or by copy if you set `RESTORE_MODE=copy`. It then offers to run `npm ci` and start a dev server on a chosen port.
 
-### cd-tree — Switch to a worktree
+### 2. cd-tree — Switch to a worktree
 
 Run `cd-tree` from inside any git repository.
 
 A filterable list of all worktrees (excluding your current directory) is shown. The main checkout is labelled `(main tree)`. Select one and your terminal moves into it.
 
-### del-tree — Delete worktrees
+### 3. del-tree — Delete worktrees
 
 Run `del-tree` from inside any git repository.
 
