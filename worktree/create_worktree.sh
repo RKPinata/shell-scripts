@@ -154,21 +154,11 @@ else
   fi
 fi
 
-# --- Port selection ---
-suggested_port=$(find_next_port)
-while true; do
-  port=$(gum input --placeholder "Dev server port" --value "$suggested_port") || return 1 2>/dev/null || exit 1
-  if [[ "$port" =~ ^[0-9]+$ ]] && (( port >= 1024 && port <= 65535 )); then
-    break
-  fi
-  echo "  ⚠️  Invalid port. Enter a number between 1024 and 65535."
-done
-
 # Confirm
 if [[ "$mode" == "new branch" ]]; then
-  echo -e "worktree path: $abs_path\nbranch:        $display_branch\nsource:        $source_branch\nport:          $port"
+  echo -e "worktree path: $abs_path\nbranch:        $display_branch\nsource:        $source_branch"
 else
-  echo -e "worktree path: $abs_path\nbranch:        $display_branch\nport:          $port"
+  echo -e "worktree path: $abs_path\nbranch:        $display_branch"
 fi
 gum confirm "Create worktree?" || return 1 2>/dev/null || exit 1
 
@@ -181,10 +171,22 @@ fi
 # Guard: only restore if worktree was successfully created
 [[ -d "$abs_path" ]] || { echo "❌ Worktree creation failed; skipping restore."; return 1 2>/dev/null || exit 1; }
 
-# Write port to worktree root (outside app/ to avoid git noise)
-echo "$port" > "${abs_path}/.dev-port"
+# Worktree exists — update trap to cd into it on Ctrl+C
+trap "echo -e '\n🚪 Exiting...'; cd '$abs_path'; return 0 2>/dev/null || exit 0" SIGINT
 
-# --- Restore local-only files ---
+# Detect repo name from main checkout root
+REPO_NAME=$(basename "$MAIN_ROOT")
+
+# Non-respond-io-web repos: simple worktree, no repo-specific bootstrap
+if [[ "$REPO_NAME" != "respond-io-web" ]]; then
+  echo ""
+  echo "Worktree ready at: $abs_path"
+  echo "Branch: $display_branch"
+  cd "$abs_path"
+  return 0 2>/dev/null || exit 0
+fi
+
+# --- Restore local-only files (respond-io-web) ---
 echo ""
 echo "Restoring local files..."
 restore_item ".env"
@@ -199,18 +201,43 @@ restore_item "dev/certs"
 restore_item "app/public/design-tokens.source.json"
 echo "Done."
 
-# --- Bootstrap ---
+# --- Bootstrap: npm ci ---
 echo ""
-if gum confirm "Run npm ci in app/?"; then
-  echo "Running npm ci..."
+if gum confirm "Run npm ci?"; then
+  echo "Running npm ci in root..."
+  (
+    cd "${abs_path}" || { echo "❌ Could not cd into ${abs_path}"; exit 1; }
+    npm ci || echo "  ⚠️  npm ci (root) exited with an error"
+  )
+  echo "Running npm ci in app/..."
   (
     cd "${abs_path}/app" || { echo "❌ Could not cd into ${abs_path}/app"; exit 1; }
-    npm ci || echo "  ⚠️  npm ci exited with an error"
+    npm ci || echo "  ⚠️  npm ci (app) exited with an error"
   )
+else
+  echo ""
+  echo "Worktree ready at: $abs_path"
+  echo "Branch: $display_branch"
+  echo "Skipped npm ci — run manually when needed."
+  return 0 2>/dev/null || exit 0
 fi
 
-# Write dev.sh launcher into worktree root
-cat > "${abs_path}/dev.sh" <<'DEVSH'
+# --- Bootstrap: dev server ---
+echo ""
+if gum confirm "Run localhost dev server?"; then
+  suggested_port=$(find_next_port)
+  while true; do
+    port=$(gum input --placeholder "Dev server port" --value "$suggested_port") || return 1 2>/dev/null || exit 1
+    if [[ "$port" =~ ^[0-9]+$ ]] && (( port >= 1024 && port <= 65535 )); then
+      break
+    fi
+    echo "  ⚠️  Invalid port. Enter a number between 1024 and 65535."
+  done
+
+  echo "$port" > "${abs_path}/.dev-port"
+
+  # Write dev.sh launcher into worktree root
+  cat > "${abs_path}/dev.sh" <<'DEVSH'
 #!/bin/bash
 DIR="$(cd "$(dirname "$0")" && pwd)"
 if [[ ! -f "$DIR/.dev-port" ]]; then
@@ -221,11 +248,15 @@ port="$(cat "$DIR/.dev-port")"
 cd "$DIR/app"
 npm run dev-direct -- --port "$port"
 DEVSH
-chmod +x "${abs_path}/dev.sh"
+  chmod +x "${abs_path}/dev.sh"
 
-echo ""
-echo "Start the app:"
-echo "  ${abs_path}/dev.sh"
-
-cd "${abs_path}/app"
-npm run dev-direct -- --port "$port"
+  echo ""
+  cd "${abs_path}/app"
+  npm run dev-direct -- --port "$port"
+else
+  echo ""
+  echo "Worktree ready at: $abs_path"
+  echo "Branch: $display_branch"
+  echo "npm ci complete. Run dev server manually when needed."
+  return 0 2>/dev/null || exit 0
+fi
