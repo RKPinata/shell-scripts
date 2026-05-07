@@ -38,9 +38,22 @@ source ~/.zshrc
 
 | Command       | Description                                         |
 | ------------- | --------------------------------------------------- |
+| `tree`        | Interactive menu for all worktree commands          |
 | `create-tree` | Create a new worktree from a new or existing branch |
 | `cd-tree`     | Switch your terminal into another worktree          |
 | `del-tree`    | Select and force-delete one or more worktrees       |
+
+### tree — Interactive menu
+
+Run `tree` from inside any git repository for a filterable menu of all worktree commands.
+
+```
+> Create worktree
+  Switch to worktree
+  Delete worktree
+```
+
+Type to filter, press Enter to select. This is a shortcut for the three commands below.
 
 ### 1. create-tree — Create a worktree
 
