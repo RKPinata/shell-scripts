@@ -60,4 +60,8 @@ echo -e "parent branch: $source_branch\nbranch name: $full_branch"
 gum confirm "Create branch?" || exit 1
 
 # Create the branch
-git checkout -b "$full_branch" "$source_branch"
+git checkout -b "$full_branch" "$source_branch" || exit 1
+
+# Remember the parent branch. The resolve/ naming scheme sanitizes / and - into _,
+# which is lossy, so record the real name for gpso to open its PR against.
+git config "branch.${full_branch}.parentBranch" "$source_branch"
