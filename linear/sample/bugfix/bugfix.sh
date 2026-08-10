@@ -3,7 +3,7 @@
 set -euo pipefail
 
 REPO_DIR="/Users/danish/Repo/respond-io-web"
-INSTRUCTION_FILE="/Users/danish/scripts/linear/bugfix/prompt.md"
+INSTRUCTION_FILE="/Users/danish/scripts/linear/sample/bugfix/prompt.md"
 BASE_BRANCH_FALLBACK="AI_DECIDE_BASE_BRANCH"
 TARGET_BRANCH_FALLBACK="AI_DECIDE_BRANCH_NAME"
 

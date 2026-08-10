@@ -6,6 +6,7 @@ REPO_DIR="/Users/danish/Repo/respond-io-web"
 INSTRUCTION_FILE="/Users/danish/scripts/linear/bugfix-prompt.md"
 BASE_BRANCH_FALLBACK="AI_DECIDE_BASE_BRANCH"
 TARGET_BRANCH_FALLBACK="AI_DECIDE_BRANCH_NAME"
+GHOSTTY_APP="/Applications/Ghostty.app"
 
 # 0: launch Claude
 # 1: stop before Claude launches (for testing)
@@ -216,6 +217,40 @@ launch_claude_in_cmux() {
   printf 'Launched in cmux workspace: %s\n' "$workspace_name"
 }
 
+# Open a new Ghostty window and run claude with the given prompt.
+# Usage: launch_claude_in_terminal <workspace_dir> <issue_slug> <prompt>
+launch_claude_in_terminal() {
+  require_command open
+
+  local workspace_dir="$1" slug="$2" prompt="$3"
+  local prompt_file="/tmp/claude-prompt-${slug}.txt"
+  local launch_script="/tmp/claude-launch-${slug}.sh"
+
+  if [ ! -d "$GHOSTTY_APP" ]; then
+    printf 'Ghostty not found at %s\n' "$GHOSTTY_APP" >&2
+    exit 1
+  fi
+
+  printf '%s' "$prompt" > "$prompt_file"
+
+  # The prompt is multi-line, so it reaches claude through a file rather than argv.
+  cat > "$launch_script" <<SCRIPT
+#!/usr/bin/env bash
+cd '${workspace_dir}'
+exec claude --dangerously-skip-permissions "\$(cat '${prompt_file}')"
+SCRIPT
+  chmod +x "$launch_script"
+
+  # --initial-command rather than -e: a command passed via -e is treated as
+  # untrusted and each launch raises a "Allow Ghostty to execute" dialog.
+  open -na "$GHOSTTY_APP" --args \
+    --working-directory="$workspace_dir" \
+    --initial-command="$launch_script" \
+    --quit-after-last-window-closed=true
+
+  printf 'Launched in Ghostty: %s\n' "$slug"
+}
+
 build_prompt() {
   local instruction_text project_name
   instruction_text="$(cat "$INSTRUCTION_FILE")"
@@ -315,7 +350,7 @@ run_script() {
     exit 0
   fi
 
-  launch_claude_in_cmux "$REPO_DIR" "$(slugify_text "$ISSUE_IDENTIFIER")" "$REMOTE_PROMPT"
+  launch_claude_in_terminal "$REPO_DIR" "$(slugify_text "$ISSUE_IDENTIFIER")" "$REMOTE_PROMPT"
 
 }
 
