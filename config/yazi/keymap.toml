@@ -1,0 +1,4 @@
+[[mgr.prepend_keymap]]
+on = "F"
+run = "shell -- open -a FluxMarkdown %s"
+desc = "Open in FluxMarkdown"
