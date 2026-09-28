@@ -131,6 +131,10 @@ function gpso
     command bash /Users/danish/scripts/git_push_set_origin.sh $argv
 end
 
+function showlocalhost
+    command bash /Users/danish/scripts/gum_local_servers.sh $argv
+end
+
 # Worktree scripts remain unchanged. Run them in zsh, then mirror any
 # resulting directory change back into the current fish process.
 function __run_zsh_worktree_helper --argument-names script
