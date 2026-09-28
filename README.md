@@ -24,9 +24,39 @@ Anything you want in both places has to be written twice — once in
 | `create-tree`, `cd-tree`, `del-tree` | The three worktree actions directly | `worktree/` |
 | `y` | yazi; on quit, the shell follows the directory yazi was left in | `config/fish/functions/y.fish` |
 | `cdweb`, `cdtest` | Jump to the web and testing repos | `config/fish/config.fish` |
+| `cd- <name>` | Jump to a target from `config/shell/cd-targets`, with tab completion | `shell-integration.zsh`, `config/fish/config.fish` |
+| `cd- add` | Browse to a directory in yazi, name it, and add it as a target | `config/shell/cd_add.sh` |
+| `cd- delete [name...]` | Remove one or more targets | `config/shell/cd_delete.sh` |
 
 `gm` is `git merge` in fish. Worktree helpers are zsh scripts; fish runs them in a
 zsh subprocess and copies the resulting directory back into the fish process.
+
+## cd-
+
+`cd- <name>` jumps to a directory listed in `config/shell/cd-targets`. Each line
+is a name, one space, then the path. The path may contain spaces. Lines starting
+with `#` are skipped. Edit the file by hand to rename a target.
+
+`cd- add` opens yazi at `~/Repo`. Browse to the directory and press `q` to pick
+it, or `Q` to cancel. A gum prompt then asks you to confirm the path; its default
+is No. Last, gum asks for a name, with the folder name as the default. It rejects `add`,
+`delete`, names already in the file, and names with characters other than
+letters, digits, `.`, `_` or `-`.
+
+`cd- delete <name...>` removes the named targets. With no names, it lists the
+targets in a gum filter: tab marks each one to delete, and enter finishes. It then
+prints the chosen lines and asks to confirm, with No as the default. An unknown
+name stops it before anything is removed. Only the lines in `cd-targets` go; the
+directories stay.
+
+Tab completion comes from three places, and all three read `cd-targets`:
+
+- zsh: `_cd-` in `shell-integration.zsh`
+- fish: `complete -c cd-` in `config/fish/config.fish`
+- the inshellisense popup: `config/inshellisense/specs/cd-.js`
+
+`inshellisense complete "cd- "` crashes. That subcommand skips specs from
+`specs.path`, so test the spec in a live shell.
 
 ## showlocalhost
 
@@ -69,6 +99,7 @@ These live in the repo and are symlinked into place:
 | `config/fish/functions/y.fish` | `~/.config/fish/functions/y.fish` |
 | `config/yazi/yazi.toml` | `~/.config/yazi/yazi.toml` |
 | `config/yazi/keymap.toml` | `~/.config/yazi/keymap.toml` |
+| `config/inshellisense/rc.toml` | `~/.config/inshellisense/rc.toml` |
 
 On a new machine:
 
@@ -77,6 +108,7 @@ ln -s ~/scripts/config/fish/config.fish          ~/.config/fish/config.fish
 ln -s ~/scripts/config/fish/functions/y.fish     ~/.config/fish/functions/y.fish
 ln -s ~/scripts/config/yazi/yazi.toml            ~/.config/yazi/yazi.toml
 ln -s ~/scripts/config/yazi/keymap.toml          ~/.config/yazi/keymap.toml
+ln -s ~/scripts/config/inshellisense/rc.toml     ~/.config/inshellisense/rc.toml
 ```
 
 `~/.zshrc`, `~/.config/ghostty/config`, and the `config.fish.*` backups in

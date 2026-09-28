@@ -135,6 +135,38 @@ function showlocalhost
     command bash /Users/danish/scripts/gum_local_servers.sh $argv
 end
 
+# `cd- <name>` jumps to a target listed in config/shell/cd-targets.
+# `cd- add` picks a directory and appends it there. `cd- delete` removes one.
+function __cd_targets
+    string match --invert --regex '^#' </Users/danish/scripts/config/shell/cd-targets
+end
+
+function cd- --description 'Jump to a named directory'
+    switch "$argv[1]"
+        case add
+            command bash /Users/danish/scripts/config/shell/cd_add.sh
+            return
+        case delete
+            command bash /Users/danish/scripts/config/shell/cd_delete.sh $argv[2..]
+            return
+    end
+    for line in (__cd_targets)
+        set -l parts (string split --max 1 ' ' -- $line)
+        if test "$parts[1]" = "$argv[1]"
+            cd $parts[2]
+            return
+        end
+    end
+    set -l names (__cd_targets | string replace --regex ' .*' '')
+    echo "cd-: unknown target '$argv[1]' ($names add delete)" >&2
+    return 1
+end
+complete -c cd- -f
+complete -c cd- -n __fish_is_first_arg -a add -d "pick a directory and add it as a target"
+complete -c cd- -n __fish_is_first_arg -a delete -d "remove a target"
+complete -c cd- -n '__fish_is_first_arg; or __fish_seen_subcommand_from delete' \
+    -a "(__cd_targets | string replace ' ' \t)"
+
 # Worktree scripts remain unchanged. Run them in zsh, then mirror any
 # resulting directory change back into the current fish process.
 function __run_zsh_worktree_helper --argument-names script

@@ -1,0 +1,6 @@
+# Targets for `cd- <name>`, one per line: a name, a space, then the path.
+# `cd- add` appends here and `cd- delete` removes. zsh, fish and the inshellisense spec all read this file.
+web /Users/danish/Repo/respond-io-web
+test /Users/danish/Repo/web-testing-explorations
+scripts /Users/danish/scripts
+claude /Users/danish/.claude

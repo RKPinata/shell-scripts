@@ -1,0 +1,4 @@
+# inshellisense config. ~/.config/inshellisense/rc.toml links here.
+
+[specs]
+path = ["/Users/danish/scripts/config/inshellisense/specs"]
