@@ -1,0 +1,143 @@
+
+
+
+
+
+# OPENSPEC:START
+# OpenSpec shell completions configuration
+fpath=("/Users/danish/.oh-my-zsh/custom/completions" $fpath)
+autoload -Uz compinit
+compinit
+# OPENSPEC:END
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+
+# User configuration
+
+# export MANPATH="/usr/local/man:$MANPATH"
+
+# You may need to manually set your language environment
+# export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='nvim'
+# fi
+
+# Compilation flags
+# export ARCHFLAGS="-arch $(uname -m)"
+
+# Set personal aliases, overriding those provided by Oh My Zsh libs,
+# plugins, and themes. Aliases can be placed here, though Oh My Zsh
+# users are encouraged to define aliases within a top-level file in
+# the $ZSH_CUSTOM folder, with .zsh extension. Examples:
+# - $ZSH_CUSTOM/aliases.zsh
+# - $ZSH_CUSTOM/macos.zsh
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+source ~/powerlevel10k/powerlevel10k.zsh-theme
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# NVM Setup
+# The default version's bin goes on PATH directly; nvm.sh and its completion
+# load on the first `nvm` call. A default alias that is not a plain version
+# directory (lts/*, node, stable) has no bin path to prepend, so nvm.sh is
+# sourced up front instead and resolves the alias itself.
+export NVM_DIR="$HOME/.nvm"
+_nvm_pinned=0
+if [[ -r "$NVM_DIR/alias/default" ]]; then
+    read -r _nvm_default < "$NVM_DIR/alias/default"
+    if [[ -d "$NVM_DIR/versions/node/v$_nvm_default/bin" ]]; then
+        path=("$NVM_DIR/versions/node/v$_nvm_default/bin" $path)
+        _nvm_pinned=1
+    fi
+fi
+if (( _nvm_pinned )); then
+    nvm() {
+        unset -f nvm
+        \. "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+        nvm "$@"
+    }
+else
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+fi
+unset _nvm_default _nvm_pinned
+
+# CUSTOM ALIAS
+source "$HOME/scripts/config/shell/aliases.sh"
+
+function rialita() {
+    if [[ $# -eq 0 ]]; then
+        command claude --permission-mode bypassPermissions
+    else
+        command claude --permission-mode bypassPermissions "$@"
+    fi
+}
+
+# SCRIPTS
+
+export USE_BUILTIN_RIPGREP=0
+
+# bun completions
+[ -s "/Users/danish/.bun/_bun" ] && source "/Users/danish/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Android Studio
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+# --- worktree-scripts START ---
+source "/Users/danish/scripts/worktree/shell-integration.zsh"
+# --- worktree-scripts END ---
+
+# --- scripts START ---
+source "/Users/danish/scripts/shell-integration.zsh"
+# --- scripts END ---
+
+# rustup (keg-only homebrew) — for cargo/rustc on PATH
+export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
+# cargo install binaries (e.g. croft)
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# >>> croft zoxide (managed) >>>
+export PATH="$HOME/.local/bin:$PATH"
+eval "$(zoxide init zsh --cmd j)"
+# <<< croft zoxide (managed) <<<
+
+
+export EDITOR="code --wait"
+export VISUAL="code --wait"
+
+
+
+# Ghostty font presets
+export PATH="$HOME/bin:$PATH"
+
+# >>> lori shell integration >>>
+[ -f "/Users/danish/Library/Application Support/Lori/Shell/lori.zsh" ] && source "/Users/danish/Library/Application Support/Lori/Shell/lori.zsh"
+# <<< lori shell integration <<<
+
+
+
+

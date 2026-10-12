@@ -18,25 +18,32 @@ fish_add_path --global --prepend \
     $HOME/.local/bin \
     $BUN_INSTALL/bin \
     /opt/homebrew/bin \
-    /opt/homebrew/sbin
+    /opt/homebrew/sbin \
+    /usr/local/bin
 
 fish_add_path --global --append \
     $ANDROID_HOME/emulator \
     $ANDROID_HOME/platform-tools
 
+# Shortcuts shared with zsh. Restricted to alias lines so both shells parse it.
+source $HOME/scripts/config/shell/aliases.sh
+
 if status is-interactive
     fnm env --use-on-cd --shell fish | source
+
+    # fnm's own fish completions stop at the subcommand; these add the
+    # installed versions and aliases that `use`/`uninstall` take.
+    function __fnm_versions
+        fnm list | string replace -r '^\*?\s*' '' | string split ' '
+    end
+    complete -c fnm -n '__fish_seen_subcommand_from use uninstall default alias' \
+        -f -a '(__fnm_versions)'
+
     zoxide init fish --cmd j | source
 
     # Initialize the complete preset map before fzf adds user bindings.
     fish_default_key_bindings
     fzf --fish | source
-
-    # carapace supplies dynamic completions (git branches, docker names) for
-    # commands fish has no completer for. Bridges fall back to zsh/bash
-    # completers when carapace has no spec.
-    set -gx CARAPACE_BRIDGES zsh,bash
-    carapace _carapace fish | source
 
     # Ghostty sends private sequences for macOS-style selection shortcuts.
     # Start a selection once, then preserve its anchor while repeated keys
@@ -113,8 +120,6 @@ alias grbi='git rebase -i'
 alias gm='git merge'
 
 alias pn='pnpm'
-alias cdweb='cd /Users/danish/Repo/respond-io-web'
-alias cdtest='cd /Users/danish/Repo/web-testing-explorations'
 alias gfn='gfont next'
 alias gfp='gfont prev'
 
@@ -131,9 +136,24 @@ function gpso
     command bash /Users/danish/scripts/git_push_set_origin.sh $argv
 end
 
+function grflight
+    command bash /Users/danish/scripts/gum_resolve_flight.sh $argv
+end
+
 function showlocalhost
     command bash /Users/danish/scripts/gum_local_servers.sh $argv
 end
+
+function cloc --description 'Start Claude with local plugin checkouts'
+    command bash /Users/danish/scripts/claude_local.sh $argv
+end
+complete -c cloc -f
+complete -c cloc -n __fish_is_first_arg -a all -d "load every plugin"
+complete -c cloc -n __fish_is_first_arg -a add -d "register a plugin directory"
+complete -c cloc -n __fish_is_first_arg -a delete -d "remove plugins from the registry"
+complete -c cloc -n __fish_is_first_arg -a list -d "print the registry"
+complete -c cloc -n __fish_is_first_arg -a install-test -d "install from a throwaway marketplace copy"
+complete -c cloc -a "(command bash /Users/danish/scripts/claude_local.sh list | string replace ' ' \t)"
 
 # `cd- <name>` jumps to a target listed in config/shell/cd-targets.
 # `cd- add` picks a directory and appends it there. `cd- delete` removes one.

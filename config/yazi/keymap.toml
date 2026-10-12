@@ -2,3 +2,13 @@
 on = "F"
 run = "shell -- open -a FluxMarkdown %s"
 desc = "Open in FluxMarkdown"
+
+[[mgr.prepend_keymap]]
+on = "e"
+run = "shell --block -- fresh %s"
+desc = "Edit selection in Fresh"
+
+[[mgr.prepend_keymap]]
+on = "E"
+run = "shell --block -- fresh ."
+desc = "Edit current directory in Fresh"
