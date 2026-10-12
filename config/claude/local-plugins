@@ -1,0 +1,3 @@
+# Plugins `cloc` can load from a local checkout. One per line: name, one space, path.
+respond-io-frontend /Users/danish/Repo/claude-plugin-marketplace/plugins/engineering/respond-io-frontend
+dynamic-interview /Users/danish/Repo/rkpinata-plugin/plugins/dynamic-interview
