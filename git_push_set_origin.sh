@@ -114,8 +114,11 @@ fi
 
 echo ""
 
-# Don't try to create a second PR for the same branch.
-existing_pr=$(gh pr view "$current_branch" --json url --jq .url 2>/dev/null)
+# Don't try to create a second PR for the same branch. Only open PRs count: the
+# branch name is reused every time master is re-synced into the same parent, so
+# earlier rounds leave merged PRs behind that must not block this one.
+existing_pr=$(gh pr list --head "$current_branch" --base "$base_branch" --state open \
+  --json url --jq '.[0].url' 2>/dev/null)
 if [[ -n "$existing_pr" ]]; then
   echo "ℹ️  PR already exists:"
   echo "$existing_pr"
