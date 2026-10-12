@@ -16,7 +16,6 @@ if ! git rev-parse --is-inside-work-tree &>/dev/null; then
 fi
 
 # Derive main checkout root — correct even when invoked from inside a worktree
-# Set RESTORE_MODE=copy to copy local files into the worktree instead of symlinking them.
 MAIN_ROOT=$(git worktree list --porcelain | awk 'NR==1{sub(/^worktree /, ""); print}')
 if [[ -z "$MAIN_ROOT" ]]; then
   echo "❌ Could not derive main checkout root. Exiting."
@@ -24,66 +23,6 @@ if [[ -z "$MAIN_ROOT" ]]; then
 fi
 WORKTREE_PARENT="${MAIN_ROOT}/.worktrees"
 mkdir -p "$WORKTREE_PARENT"
-
-# Restore a single file or directory from MAIN_ROOT into the new worktree.
-# Usage: restore_item <repo-relative-path>
-restore_item() {
-  local rel_path="$1"
-  local source="${MAIN_ROOT}/${rel_path}"
-  local target="${abs_path}/${rel_path}"
-
-  # Source absent — skip silently
-  if [[ ! -e "$source" && ! -L "$source" ]]; then
-    return 0
-  fi
-
-  # Target is already the correct symlink — skip silently
-  if [[ -L "$target" && "$(readlink "$target")" == "$source" ]]; then
-    return 0
-  fi
-
-  # Target exists but is something else — warn and skip
-  if [[ -e "$target" || -L "$target" ]]; then
-    echo "  [warned]  $rel_path — target exists, skipping"
-    return 0
-  fi
-
-  # Ensure parent directory exists
-  mkdir -p "$(dirname "$target")"
-
-  if [[ "${RESTORE_MODE:-symlink}" == "copy" ]]; then
-    cp -r "$source" "$target"
-    echo "  [copied]  $rel_path"
-  else
-    ln -s "$source" "$target"
-    echo "  [linked]  $rel_path"
-  fi
-}
-
-# Restore all files matching a shell glob under MAIN_ROOT.
-# Usage: restore_glob <glob-pattern>  (e.g. ".env.*.local")
-restore_glob() {
-  local pattern="$1"
-  for source in "${MAIN_ROOT}"/${pattern}; do
-    [[ -e "$source" || -L "$source" ]] || continue
-    local rel_path="${source#${MAIN_ROOT}/}"
-    restore_item "$rel_path"
-  done
-}
-
-# Return the lowest port >= 8080 not already claimed by an existing worktree.
-find_next_port() {
-  local port=8080
-  while true; do
-    local in_use=false
-    for f in "${WORKTREE_PARENT}"/*/.dev-port; do
-      [[ -f "$f" ]] || continue
-      [[ "$(cat "$f")" == "$port" ]] && in_use=true && break
-    done
-    $in_use || { echo "$port"; return; }
-    ((port++))
-  done
-}
 
 # Mode selection
 mode=$(gum filter "new branch" "existing branch") || return 1 2>/dev/null || exit 1
@@ -174,89 +113,13 @@ fi
 # Worktree exists — update trap to cd into it on Ctrl+C
 trap "echo -e '\n🚪 Exiting...'; cd '$abs_path'; return 0 2>/dev/null || exit 0" SIGINT
 
-# Detect repo name from git remote URL
-REPO_NAME=$(git -C "$MAIN_ROOT" remote get-url origin 2>/dev/null | sed 's/.*[/:]\([^/]*\)\.git$/\1/' | sed 's/.*[/:]\([^/]*\)$/\1/')
+# Restore local files and install dependencies.
+# __WORKTREE_DIR is set by shell-integration.zsh; BASH_SOURCE covers direct execution.
+_wt_dir="${__WORKTREE_DIR:-$(dirname "${BASH_SOURCE[0]:-$0}")}"
+bash "${_wt_dir}/bootstrap_worktree.sh" "$abs_path"
 
-# Non-respond-io-web repos: simple worktree, no repo-specific bootstrap
-if [[ "$REPO_NAME" != "respond-io-web" ]]; then
-  echo ""
-  echo "Worktree ready at: $abs_path"
-  echo "Branch: $display_branch"
-  cd "$abs_path"
-  return 0 2>/dev/null || exit 0
-fi
-
-# --- Restore local-only files (respond-io-web) ---
 echo ""
-echo "Restoring local files..."
-restore_item ".env"
-restore_item ".env.local"
-restore_glob ".env.*.local"
-restore_item ".env.direct"
-restore_item ".env.staging"
-restore_item ".env.production"
-restore_item "app/.env"
-restore_item "app/.env.direct"
-restore_item "dev/certs"
-restore_item "app/public/design-tokens.source.json"
-echo "Done."
-
-# --- Bootstrap: npm ci ---
-echo ""
-if gum confirm "Run npm ci?"; then
-  echo "Running npm ci in root..."
-  (
-    cd "${abs_path}" || { echo "❌ Could not cd into ${abs_path}"; exit 1; }
-    npm ci || echo "  ⚠️  npm ci (root) exited with an error"
-  )
-  echo "Running npm ci in app/..."
-  (
-    cd "${abs_path}/app" || { echo "❌ Could not cd into ${abs_path}/app"; exit 1; }
-    npm ci || echo "  ⚠️  npm ci (app) exited with an error"
-  )
-else
-  echo ""
-  echo "Worktree ready at: $abs_path"
-  echo "Branch: $display_branch"
-  echo "Skipped npm ci — run manually when needed."
-  return 0 2>/dev/null || exit 0
-fi
-
-# --- Bootstrap: dev server ---
-echo ""
-if gum confirm "Run localhost dev server?"; then
-  suggested_port=$(find_next_port)
-  while true; do
-    port=$(gum input --placeholder "Dev server port" --value "$suggested_port") || return 1 2>/dev/null || exit 1
-    if [[ "$port" =~ ^[0-9]+$ ]] && (( port >= 1024 && port <= 65535 )); then
-      break
-    fi
-    echo "  ⚠️  Invalid port. Enter a number between 1024 and 65535."
-  done
-
-  echo "$port" > "${abs_path}/.dev-port"
-
-  # Write dev.sh launcher into worktree root
-  cat > "${abs_path}/dev.sh" <<'DEVSH'
-#!/bin/bash
-DIR="$(cd "$(dirname "$0")" && pwd)"
-if [[ ! -f "$DIR/.dev-port" ]]; then
-  echo "❌ .dev-port not found at $DIR/.dev-port. Re-run gmtree to recreate the worktree."
-  exit 1
-fi
-port="$(cat "$DIR/.dev-port")"
-cd "$DIR/app"
-npm run dev-direct -- --port "$port"
-DEVSH
-  chmod +x "${abs_path}/dev.sh"
-
-  echo ""
-  cd "${abs_path}/app"
-  npm run dev-direct -- --port "$port"
-else
-  echo ""
-  echo "Worktree ready at: $abs_path"
-  echo "Branch: $display_branch"
-  echo "npm ci complete. Run dev server manually when needed."
-  return 0 2>/dev/null || exit 0
-fi
+echo "Worktree ready at: $abs_path"
+echo "Branch: $display_branch"
+cd "$abs_path"
+return 0 2>/dev/null || exit 0

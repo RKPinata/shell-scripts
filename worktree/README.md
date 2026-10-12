@@ -41,7 +41,7 @@ source ~/.zshrc
 | `tree`        | Interactive menu for all worktree commands          |
 | `create-tree` | Create a new worktree from a new or existing branch |
 | `cd-tree`     | Switch your terminal into another worktree          |
-| `del-tree`    | Select and force-delete one or more worktrees       |
+| `del-tree`    | Select and delete one or more worktrees             |
 
 ### tree — Interactive menu
 
@@ -77,7 +77,9 @@ A summary of the worktree path and branch is shown. Confirm to create.
 
 The new worktree is placed at `<repo-root>/.worktrees/<branch-name>`, and your terminal is moved into it.
 
-> **Repo-specific behaviour:** For the `respond-io-web` repository, `create-tree` also restores environment files (`.env`, `.env.local`, etc.) from the main checkout — by symlink by default, or by copy if you set `RESTORE_MODE=copy`. It then offers to run `npm ci` and start a dev server on a chosen port.
+> **Repo-specific behaviour:** For the `respond-io-web` repository, `create-tree` hands the new worktree to `bootstrap_worktree.sh`, which restores environment files (`.env`, `.env.direct`, `dev/certs`, `public/design-tokens.source.json`) from the main checkout — by symlink by default, or by copy if you set `RESTORE_MODE=copy` — then runs `pnpm install --frozen-lockfile` at the worktree root. Other repositories get a plain worktree with no bootstrap.
+>
+> `bootstrap_worktree.sh <worktree-path>` can also be run standalone; it derives the main checkout itself. It is the single source of truth for repo-specific setup, shared with the `creating-worktrees` Claude skill — when the repo layout changes, this is the only file that should need editing.
 
 ### 2. cd-tree — Switch to a worktree
 
@@ -94,10 +96,22 @@ A multi-select list of all worktrees (excluding the main checkout) is shown. Pre
 You will see:
 
 - A list of what will be deleted.
-- A warning that uncommitted changes in those worktrees will be permanently lost.
+- A note that uncommitted changes travel to the Trash along with the worktree.
 - A confirmation prompt.
 
 If you are currently inside a worktree that is being deleted, you are automatically moved to the main checkout first.
+
+Worktrees are moved to the macOS Trash rather than erased, so `del-tree` returns immediately no matter how large `node_modules` is, and a worktree deleted by mistake can be recovered with **Put Back**. The disk space comes back when you empty the Trash. To have macOS do that on its own, turn on *Finder → Settings → Advanced → Remove items from the Trash after 30 days*.
+
+The branch itself is untouched — `del-tree` removes the checkout, not the history.
+
+## Tests
+
+```
+./worktree/test_delete_worktree.zsh
+```
+
+Each case builds a throwaway repository under a temp root and sources `delete_worktree.sh` against it. `gum` and `trash` are stubbed on `PATH`, so the prompts are scripted and nothing reaches the real Trash.
 
 ## Troubleshooting
 
