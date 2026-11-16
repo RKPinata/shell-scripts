@@ -7,7 +7,7 @@ with mermaid diagrams drawn.
 ```
 Claude session ──SessionStart hook──▶ ~/.claude/whiteboards/<repo>/<session-id>.md
       │                               ~/.claude/whiteboards/.terminals/<HC_TERMINAL_ID>  (holds the board path)
-      └─ context: board path + how to write it
+      └─ context: board path; the whiteboard skill, loaded on demand, says how to write it
 
 Herdr panel (mod) ── every 500 ms: focused terminal ─▶ pointer ─▶ board ─▶ render
 ```
