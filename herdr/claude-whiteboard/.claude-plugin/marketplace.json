@@ -1,0 +1,11 @@
+{
+  "name": "claude-whiteboard",
+  "owner": { "name": "Danish" },
+  "plugins": [
+    {
+      "name": "claude-whiteboard",
+      "source": "./plugin",
+      "description": "Gives each session a markdown whiteboard that a Herdr pane shows beside it"
+    }
+  ]
+}

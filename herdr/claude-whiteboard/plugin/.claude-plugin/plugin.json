@@ -1,0 +1,5 @@
+{
+  "name": "claude-whiteboard",
+  "version": "0.1.0",
+  "description": "Gives each session a markdown whiteboard that a Herdr pane shows beside it"
+}

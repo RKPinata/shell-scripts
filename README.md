@@ -102,6 +102,11 @@ By default only processes whose directory matches `respond-io` are listed, so
 apps like Raycast stay off the list. `showlocalhost -a` lists every listener.
 `LOCAL_SERVERS_MATCH` sets a different `grep -E` pattern for the directory.
 
+## claude-whiteboard
+
+`herdr/claude-whiteboard/` gives each Claude session a markdown whiteboard, shown in a
+Herdr panel. See its README.
+
 ## yazi
 
 `F` opens the hovered or selected files in FluxMarkdown. `O` on a markdown file
