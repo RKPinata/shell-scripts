@@ -5,8 +5,8 @@ worth keeping in view, and the Whiteboard panel in Herdr shows the focused sessi
 with mermaid diagrams drawn.
 
 ```
-Claude session ──SessionStart hook──▶ ~/.claude/whiteboards/<repo>/<session-id>.md
-      │                               ~/.claude/whiteboards/.terminals/<HC_TERMINAL_ID>  (holds the board path)
+Claude session ──SessionStart hook──▶ board.sh ─▶ ~/.claude/whiteboards/<repo>/<session-id>.md
+      │                                          ~/.claude/whiteboards/.terminals/<HC_TERMINAL_ID>  (holds the board path)
       └─ context: board path; the whiteboard skill, loaded on demand, says how to write it
 
 Herdr panel (mod) ── every 500 ms: focused terminal ─▶ pointer ─▶ board ─▶ render
@@ -20,7 +20,13 @@ Herdr panel (mod) ── every 500 ms: focused terminal ─▶ pointer ─▶ bo
 
 It copies `mod/` to `~/.config/herdr-app/mods/claude-whiteboard`, then adds this folder as
 the `claude-whiteboard` marketplace and installs the plugin. Run it again after editing
-either part. New sessions get a board; running sessions do not.
+either part.
+
+The plugin loads in place from `plugin/`, so an edit there takes effect at the next session start or after `/reload-plugins`. The mod needs `./install.sh` again.
+
+## The board path
+
+`plugin/skills/whiteboard/board.sh [session-id] [cwd]` prints the board path, creates its folder and writes the `.terminals` link. It defaults to `$CLAUDE_CODE_SESSION_ID` and `$PWD`. The SessionStart hook calls it, and the skill tells Claude to run it when the session has no "Your whiteboard file:" line, as after `/reload-plugins`.
 
 The mod is copied, not linked: Herdr resolves a symlinked mod to its real path, so it never
 hot-reloads it.

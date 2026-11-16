@@ -1,13 +1,17 @@
 ---
 name: whiteboard
-description: Use when an explanation is worth keeping in view beside the session (a flow, a design, the current plan, findings, or anything clearer as a diagram) and the session has a whiteboard file. Not for short answers.
+description: Use when an explanation is worth keeping in view beside the session (a flow, a design, the current plan, findings, or anything clearer as a diagram). Not for short answers.
 ---
 
 # Whiteboard
 
-The whiteboard path is in the session-start context, on the line that starts with
-"Your whiteboard file:". The user reads that file in a Herdr panel beside the session. It is
-for the user only. It is temporary and is not a source of truth.
+The user reads the whiteboard file in a Herdr panel beside the session. It is for the user only. It is temporary and is not a source of truth.
+
+## Finding it
+
+If the context has a line that starts with "Your whiteboard file:", that line holds the path.
+
+Otherwise run `bash <base directory>/board.sh`, where `<base directory>` is the "Base directory for this skill" shown above. It prints the path, creates the folder, and links the Herdr pane to the board. Do not build the path yourself.
 
 ## Writing it
 
