@@ -16,6 +16,8 @@ Otherwise run `bash <base directory>/board.sh`, where `<base directory>` is the 
 ## Writing it
 
 - Rewrite the whole file with Write each time. Do not append.
+- The user can edit the board in the panel: tick `- [ ]` items, change or add blocks. Read
+  the file before you rewrite it, and keep the user's changes.
 - Keep only what is current. Delete what no longer matters.
 - Put the main idea first. Use headings and short bullets.
 - Draw flows, sequences, states and structures as ```mermaid blocks: `flowchart`,
